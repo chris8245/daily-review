@@ -508,10 +508,14 @@ function renderPanorama(p){
     t+=arr.map(x=>'<tr><td class="pn">'+esc(x.n)+'</td><td class="'+(x.cls||'flat')+'">'+md(x.v)+(x.sub?'<div class="sub">'+esc(x.sub)+'</div>':'')+'</td></tr>').join('');
     return t+'</table></div>';
   };
-  // 兼容旧数据：p.us 缺失时兜底使用 p.hk；若两者都存在优先展示 p.hk + p.us(隔夜美股) -> 仅用 p.hk
-  let h='<div class="pano"><div class="ch qian">市场概况 · 港股 + A股 + 大宗商品</div>';
+  // 兼容旧数据：盘前港股未开盘仅 p.us 时，第一列显示「外盘（隔夜）」而非「港股（盘中/收盘）」
+  const hasHK = Array.isArray(p.hk) && p.hk.length > 0;
+  const extColTitle = hasHK ? '港股（盘中/收盘）' : '外盘（隔夜）';
+  const extColData = hasHK ? p.hk : (p.us || []);
+  const topTitle = hasHK ? '市场概况 · 港股 + A股 + 大宗商品' : '市场概况 · 外盘（隔夜）+ A股 + 大宗商品';
+  let h='<div class="pano"><div class="ch qian">'+esc(topTitle)+'</div>';
   if(p.ts) h+='<div class="ts">'+esc(p.ts)+'</div>';
-  h+='<div class="pano-grid">'+sec('港股（盘中/收盘）',p.hk||p.us)+sec('A股（上一交易日）',p.a)+sec('大宗商品',p.commod)+'</div>';
+  h+='<div class="pano-grid">'+sec(extColTitle,extColData)+sec('A股（上一交易日）',p.a)+sec('大宗商品',p.commod)+'</div>';
   if(p.note) h+='<div class="note">'+md(p.note)+'</div>';
   return h+'</div>';
 }
