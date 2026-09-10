@@ -263,7 +263,7 @@
   .theme .th .badge{font-size:11px;background:var(--qian);color:#FBFBF6;padding:1px 8px;border-radius:6px;margin-left:6px;vertical-align:middle;font-weight:500;border:1px solid #4a2f73;}
   .theme .tb{font-size:13px;margin:3px 0;}
   .theme .stk{font-size:12.5px;color:#2563eb;margin-top:3px;}
-  .verdict td:first-child{font-weight:600;} .vlegend{font-size:11.5px;color:#93a0b4;margin-top:6px;line-height:1.55;}
+  .verdict td:first-child{font-weight:600;} .vlegend{margin-top:9px;font-size:13px;line-height:1.75;color:#334155;background:#eef2f7;border-left:4px solid #2563eb;border-radius:8px;padding:9px 13px;}.vlegend b{color:#1d4ed8;margin-right:8px;font-weight:600;}.vlegend em{font-style:normal;font-weight:600;color:#0f172a;}.rate-tip{position:relative;cursor:help;border-bottom:1px dotted #94a3b8;}.rate-tip:hover::after{content:attr(data-tip);position:absolute;left:50%;transform:translateX(-50%);bottom:135%;z-index:99;width:250px;background:#1e293b;color:#f8fafc;font-size:12px;font-weight:400;line-height:1.55;padding:9px 11px;border-radius:8px;white-space:normal;text-align:left;box-shadow:0 6px 18px rgba(15,23,42,.25);}
 
   .mo{background:linear-gradient(135deg,#eff6ff,#fff);border:1px solid #dbeafe;border-radius:13px;padding:13px 15px;margin:7px 0 13px;box-shadow:var(--shadow-sm);}
   .mo .ts{font-size:12px;color:var(--sub);margin-bottom:5px;letter-spacing:.2px;}
@@ -343,13 +343,17 @@ function renderBlock(b){
     }).join('');
     case 'verdict': {
       let h='<table class="verdict"><thead><tr>'+b.head.map(x=>'<th>'+esc(x)+'</th>').join('')+'</tr></thead><tbody>';
-      h+=b.rows.map(r=>'<tr>'+r.map(c=>{
+      h+=b.rows.map(r=>'<tr>'+r.map((c,ci)=>{
         if(c==null) return '<td></td>';
-        if(typeof c==='object') return '<td class="'+(c.cls||'')+'">'+md(c.v)+'</td>';
-        return '<td>'+md(c)+'</td>';
+        var isRate=(ci===1);
+        var val=(typeof c==='object')?c.v:c;
+        var cls=(typeof c==='object')?(c.cls||''):'';
+        var tip=isRate?rateTip(val):'';
+        var attr=' class="'+cls+((isRate&&tip)?' rate-tip':'')+'"'+((isRate&&tip)?' data-tip="'+esc(tip)+'"':'');
+        return '<td'+attr+'>'+md(val)+'</td>';
       }).join('')+'</tr>').join('');
       h+='</tbody></table>';
-      h+='<div class="vlegend">评级说明：真推荐＝事真且已兑现 · 真推荐(含hype)＝事真但情绪占比高、宜控仓防脉冲 · 观察(含小作文风险)＝传闻/预期驱动、待验证</div>';
+      h+='<div class="vlegend"><b>评级说明</b><em>真推荐</em> ＝ 事真且已兑现（基本面 / 订单 / 财报支撑）　·　<em>真推荐(含hype)</em> ＝ 事真但情绪 / 估值占比高、宜控仓防脉冲　·　<em>观察(含小作文风险)</em> ＝ 传闻 / 预期驱动、待验证 <span style="color:#64748b">（鼠标移到表内「评级」上可查看该档含义）</span></div>';
       return h;
     }
   }
@@ -693,6 +697,14 @@ function renderRotation(r){
   }
   if(r.note) h+='<div class="note">'+md(r.note)+'</div>';
   return h+'</div>';
+}
+function rateTip(v){
+  var s=(v==null)?'':String(v);
+  if(!s) return '';
+  if(s.indexOf('含hype')>=0) return '真推荐(含hype)：方向为真（基本面 / 订单已兑现），但含较高情绪或估值溢价，宜降仓、等回踩，防脉冲回落。';
+  if(s.indexOf('真推荐')>=0) return '真推荐：逻辑硬且已兑现（有基本面 / 订单 / 财报支撑），可按正常仓位参与、回踩是机会。';
+  if(s.indexOf('观察')>=0) return '观察（含小作文风险）：逻辑偏软或兑现度低，多为传闻 / 预期驱动，先观察、不追高。';
+  return s;
 }
 function renderModule(key, m){
   const names={panqian:'盘前',panzhong:'盘中',panhou:'盘后',gold:'黄金跟踪'};
