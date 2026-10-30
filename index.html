@@ -407,7 +407,7 @@ function renderTldr(t, mustsee){
   let h='<div class="tldr"><div class="tldr-h">太长不看板</div><div class="tldr-b">'+md(t)+'</div>';
   if(mustsee && mustsee.length){
     h+='<div class="mustsee"><div class="ms-h">🔴 必看信息（影响广 · 信息价值高）</div><ul>';
-    h+=mustsee.map(x=>'<li><b>'+esc(x.t)+'</b>'+(x.d?('：'+md(x.d)):'')+'</li>').join('');
+    h+=mustsee.map(x=>{const it=(typeof x==='string')?{t:x}:x;return '<li><b>'+esc(it.t)+'</b>'+(it.d?('：'+md(it.d)):'')+'</li>';}).join('');
     h+='</ul></div>';
   }
   return h+'</div>';
